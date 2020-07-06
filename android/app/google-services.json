@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1002655823160",
+    "firebase_url": "https://morsey-gaming-social-hub.firebaseio.com",
+    "project_id": "morsey-gaming-social-hub",
+    "storage_bucket": "morsey-gaming-social-hub.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1002655823160:android:ffcc5f55b748cfeff8fdcd",
+        "android_client_info": {
+          "package_name": "com.aniket.morsey_social_media"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1002655823160-hlhuemh45403r65ml4lc0726lfmaut7f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aniket.morsey_social_media",
+            "certificate_hash": "3e757356bc630beb82922b8f55eca683efbdc53c"
+          }
+        },
+        {
+          "client_id": "1002655823160-347iofm9is5av4kpvg5d1a9tej4pcj8n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDitIT0iwrTKToRh_iIf09YD3wt3x6sxx8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1002655823160-347iofm9is5av4kpvg5d1a9tej4pcj8n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
