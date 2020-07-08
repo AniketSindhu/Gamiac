@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:morsey_gaming_social_hub/Methods/FirebaseAdd.dart';
 import 'package:morsey_gaming_social_hub/UI/Screens/Hompage.dart';
+import 'package:morsey_gaming_social_hub/UI/Screens/setScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -35,9 +37,16 @@ Future<String> signInWithGoogle(BuildContext context) async {
   prefs.setBool('login', true);
   name = user.displayName;
   email = user.email;
+  final x= await Firestore.instance.collection('users').document(user.email).get();
+  if(x.exists)
+    {
+      Navigator.pop(context);
+      Navigator.push(context, MaterialPageRoute(builder: (context)=>HomePage()));
+    }
+  else{
   FirebaseAdd().addUser(name, email, phoneNumber, user.uid);
-  Navigator.pop(context);
-  Navigator.push(context, MaterialPageRoute(builder: (context)=>HomePage()));
+  Navigator.push(context, MaterialPageRoute(builder: (context)=>setProfile(user.email)));
+  }
   return 'signInWithGoogle succeeded: $user';
 }
 

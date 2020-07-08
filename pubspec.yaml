@@ -36,10 +36,12 @@ dependencies:
   flutter_signin_button: ^1.0.0
   lottie: ^0.4.0+1
   bottom_navy_bar: ^5.4.0
-  fluttertoast: ^4.0.1
+  fluttertoast: ^5.0.1
   morse: ^0.1.4+1
   flutter_shake_plugin: ^0.0.2
   vibration: ^1.4.0
+  image_picker: ^0.6.7+4
+  firebase_storage: ^3.1.6
 
 dev_dependencies:
   flutter_test:
