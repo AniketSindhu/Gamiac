@@ -42,7 +42,9 @@ dependencies:
   vibration: ^1.4.0
   image_picker: ^0.6.7+4
   firebase_storage: ^3.1.6
-
+  http: ^0.12.1
+  convex_bottom_bar: ^2.2.4
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

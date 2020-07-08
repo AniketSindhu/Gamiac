@@ -1,8 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:morsey_gaming_social_hub/Methods/GoogleSignIn.dart';
+import 'package:morsey_gaming_social_hub/UI/Widgets/profHead.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'Login.dart';
 
 class HomePage extends StatefulWidget {
@@ -11,12 +14,44 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String email;
+  int page;
+  getUser()async{
+     FirebaseAuth auth=FirebaseAuth.instance;
+    final FirebaseUser user = await auth.currentUser();
+    email = user.email;
+  }
+  @override
+  void initState(){
+    super.initState();
+    getUser();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: ConvexAppBar(
+        style: TabStyle.fixedCircle,
+        items: [
+          TabItem(icon: Icons.home, title: 'Home'),
+          TabItem(icon: Icons.search, title: 'Search'),
+          TabItem(icon: Icons.add, title: 'Add'),
+          TabItem(icon: Icons.featured_play_list, title: 'News'),
+          TabItem(icon: Icons.people, title: 'Profile'),
+        ],
+        initialActiveIndex: 0,//optional, default as 0
+        onTap: (int i){
+          setState(() {
+            page=i;
+          });
+        },
+        color: Color(0xff67FD9A),
+        backgroundColor: Colors.black,
+        activeColor: Colors.redAccent,
+      ),
         appBar:AppBar(
-          title:Text('Morsey'),
+          title:Text("GAMIAC",style:GoogleFonts.bangers(textStyle:TextStyle(color:Color(0xff67FD9A),fontSize:30,fontWeight:FontWeight.w400,letterSpacing: 2)),),
           centerTitle: true,
+          backgroundColor: Colors.black,
           actions: <Widget>[
           PopupMenuButton(
             color:Colors.tealAccent[400],
@@ -42,13 +77,12 @@ class _HomePageState extends State<HomePage> {
           )
         ],        
         ),
-        backgroundColor: Color(0xff1B0536),
-        body: Center(child: Column(
-          children: <Widget>[
-            Text("yo"),
-            SizedBox(height:10),
+        body:PageView(
+          children:<Widget>[
+            
           ],
-        ),),
+        ),
+        backgroundColor: Color(0xff21252A),
     );
   }
 }

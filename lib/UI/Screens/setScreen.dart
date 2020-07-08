@@ -1,11 +1,17 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:morsey_gaming_social_hub/Globals/Globals.dart' as globals ;
+import 'package:morsey_gaming_social_hub/Models/GameSearchData.dart';
+import 'package:morsey_gaming_social_hub/Models/post.dart';
+import 'package:morsey_gaming_social_hub/UI/Screens/Hompage.dart';
+import 'package:http/http.dart'as http;
 
 class setProfile extends StatefulWidget {
   setProfile(this.email);
@@ -15,8 +21,6 @@ class setProfile extends StatefulWidget {
 }
 
 class _setProfileState extends State<setProfile> {
-  @override
-  bool _status = true;
   File _image;
   TextEditingController steamController=TextEditingController();
   TextEditingController gamerTagController=TextEditingController();
@@ -251,25 +255,81 @@ class SelectGames extends StatefulWidget {
 }
 
 class _SelectGamesState extends State<SelectGames> {
-  @override
-    Future<List<DocumentSnapshot>> getPopGames()async{
-      QuerySnapshot games= await Firestore.instance.collection("popular games").getDocuments();
-        return games.documents;    
+  List <GameSearch>searchList;
+  String query='';
+  final _debouncer = Debouncer(milliseconds: 500);
+  Future<List<DocumentSnapshot>> getPopGames()async{
+    QuerySnapshot games= await Firestore.instance.collection("popular games").getDocuments();
+      return games.documents;    
+  }
+fetchSearchList() async {
+  final response = await http.get('https://api.rawg.io/api/games?page_size=4&search=${query.replaceAll(' ', '%20')}');
+  if (response.statusCode == 200) {
+        var data = json.decode(response.body);
+        var rest = data['results'] as List;
+        searchList = rest.map<GameSearch>((json) => GameSearch.fromJson(json)).toList();
+
+  } else {
+    throw Exception('Failed to load deck');
     }
+  }
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed:() async {
+          if(globals.gamesSelected.length<=5)
+            FlutterToast.showToast(  
+              msg: "Select atleast 5 or more games",   
+              backgroundColor: Colors.red,  
+              textColor: Colors.white,  
+              fontSize: 16.0  
+            );
+            else{
+              Firestore.instance.collection('users').document(widget.email).setData({'games_followed':globals.gamesSelected},merge: true);
+              for(int i=0;i<globals.gamesSelected.length;i++){
+                final x= await Firestore.instance.collection('games').document(globals.gamesSelected[i]).get();
+                  if(x.exists)
+                    {
+                      await Firestore.instance.collection('games').document(globals.gamesSelected[i]).updateData({'followers':FieldValue.arrayUnion([widget.email]),'followers_count':FieldValue.increment(1)});
+                      QuerySnapshot y= await Firestore.instance.collection('games').document(globals.gamesSelected[i]).collection('posts').getDocuments();
+                      y.documents.forEach((element) {
+                        final z= element.data;
+                        Firestore.instance.collection('users').document(widget.email).collection('feed').document(z['postId']).setData(z);
+                      });
+                    }
+                  else{
+                    await Firestore.instance.collection('games').document(globals.gamesSelected[i]).setData({'followers':[widget.email],'followers_count':1,'slug':globals.gamesSelected[i]});
+                  }
+              }
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomePage()));
+              globals.gamesSelected.clear();
+            }
+          },
+        child: Icon(Icons.navigate_next,color:Colors.red,size: 40,),
+        backgroundColor: Colors.teal,
+      ),
       appBar: AppBar(
-        title:Text("What Games you like?",style:GoogleFonts.bangers(textStyle:TextStyle(color:Colors.teal,fontSize:25,fontWeight:FontWeight.bold,letterSpacing: 2)),),
+        title:Text("What Games you like?",style:GoogleFonts.bangers(textStyle:TextStyle(color:Color(0xff67FD9A),fontSize:25,fontWeight:FontWeight.bold,letterSpacing: 2)),),
         centerTitle: true,
       ),
-      backgroundColor: Color(0xff1B0536),
+      backgroundColor: Color(0xff21252A),
       body: Container(
-        margin: EdgeInsets.symmetric(horizontal:10,vertical:20),
+        margin: EdgeInsets.symmetric(horizontal:10,vertical:15),
         child:Column(
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text("Select minimum 5 games you like",style:GoogleFonts.bangers(textStyle:TextStyle(color:Colors.redAccent,fontSize:18,fontWeight:FontWeight.bold,letterSpacing: 2)),),
+              child: TextField(
+                onChanged: (value){
+                  _debouncer.run(() {
+                    setState(() {
+                      query=value;
+                      fetchSearchList();
+                    });                    
+                  });
+                },
+                decoration:InputDecoration(hintText:'Search Any Game')
+              )
             ),
             Expanded(
               child: FutureBuilder(
@@ -281,9 +341,9 @@ class _SelectGamesState extends State<SelectGames> {
                   else
                   return GridView.builder(
                     gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 300),
-                    itemCount: snapshot.data.length,
+                    itemCount: query==''?snapshot.data.length:searchList.length,
                     itemBuilder: (context,index){
-                      return GameCard(snapshot.data[index]);
+                      return query==''?GameCard(snapshot.data[index]):SearchGameCard(searchList[index]);
                     },
                   );
                 }
@@ -297,19 +357,26 @@ class _SelectGamesState extends State<SelectGames> {
 }
 class GameCard extends StatefulWidget {
   GameCard(this.data);
-  DocumentSnapshot data;
+  final DocumentSnapshot data;
   @override
   _GameCardState createState() => _GameCardState();
 }
 
 class _GameCardState extends State<GameCard> {
-  @override
   bool selected=false;
+  @override
+  void initState(){
+    super.initState();
+    if(globals.gamesSelected.contains(widget.data['slug']))
+      selected=true;
+  }
   Widget build(BuildContext context) {
   return GestureDetector(
       onTap: (){
         setState(() {
           selected==true?selected=false:selected=true;
+          selected==true?globals.gamesSelected.add(widget.data['slug']):globals.gamesSelected.remove(widget.data['slug']);
+          print (globals.gamesSelected);
         });
       },
       child: Card(
@@ -318,7 +385,50 @@ class _GameCardState extends State<GameCard> {
       color: Colors.deepPurple,
       child:Stack(
         children:<Widget>[
-          Center(child: Image.network(widget.data.data['image'],fit: BoxFit.fill,)),
+          Center(child: Image.network(widget.data.data['image'],fit: BoxFit.fitWidth,)),
+          Container(
+            color:Colors.pink.withOpacity(selected?0.6:0),
+            child: selected?Center(child:Icon(Icons.thumb_up,color:Color(0xff67FD9A),size: 35,)):Container(),
+          )
+        ]
+      )
+    ),
+  );
+  }
+}
+
+class SearchGameCard extends StatefulWidget {
+  SearchGameCard(this.data);
+  final GameSearch data;
+  @override
+  _SearchGameCardState createState() => _SearchGameCardState();
+}
+
+class _SearchGameCardState extends State<SearchGameCard> {
+  bool selected=false;
+  @override
+  void initState(){
+    super.initState();
+    if(globals.gamesSelected.contains(widget.data.slug))
+      selected=true;
+  }
+  Widget build(BuildContext context) {
+  return GestureDetector(
+      onTap: (){
+        setState(() {
+          selected==true?selected=false:selected=true;
+          selected==true?globals.gamesSelected.add(widget.data.slug):globals.gamesSelected.remove(widget.data.slug);
+          print (globals.gamesSelected);
+        });
+      },
+      child: Card(
+      elevation: 10,
+      shadowColor: Colors.teal,
+      color: Colors.deepPurple,
+      child:Stack(
+        children:<Widget>[
+          Center(child: Image.network(widget.data.image,fit: BoxFit.fitWidth,)),
+          Align(alignment:Alignment.bottomCenter,child: Text(widget.data.name,style: TextStyle(color:Colors.white,fontSize:18,fontWeight: FontWeight.w500),textAlign: TextAlign.center,)),
           Container(
             color:Colors.pink.withOpacity(selected?0.6:0),
             child: selected?Center(child:Icon(Icons.thumb_up,color:Colors.tealAccent,size: 35,)):Container(),
@@ -327,5 +437,20 @@ class _GameCardState extends State<GameCard> {
       )
     ),
   );
+  }
+}
+
+class Debouncer {
+  final int milliseconds;
+  VoidCallback action;
+  Timer _timer;
+ 
+  Debouncer({this.milliseconds});
+ 
+  run(VoidCallback action) {
+    if (null != _timer) {
+      _timer.cancel();
+    }
+    _timer = Timer(Duration(milliseconds: milliseconds), action);
   }
 }

@@ -15,13 +15,13 @@ class _LoginState extends State<Login> {
     double height=SizeConfig.getHeight(context);
     double width=SizeConfig.getWidth(context);
     return Scaffold(
-      backgroundColor: Color(0xff1B0536),
+      backgroundColor:Color(0xff21252A),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children:<Widget>[
           Align(
             alignment: Alignment.topCenter,
-            child: Text('MORSEY',style: GoogleFonts.orbitron(textStyle:TextStyle(color:Colors.tealAccent,fontSize:40,fontWeight: FontWeight.bold)),)),
+            child: Text('GAMIAC',style: GoogleFonts.orbitron(textStyle:TextStyle(color:Color(0xff67FD9A),fontSize:40,fontWeight: FontWeight.bold)),)),
           Text('Social Hub For Gamers',style: TextStyle(color: Colors.tealAccent),),
           SizedBox(height:30),
           Container(
