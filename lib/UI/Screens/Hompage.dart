@@ -3,10 +3,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:morsey_gaming_social_hub/Methods/GoogleSignIn.dart';
+import 'package:morsey_gaming_social_hub/Models/user.dart';
+import 'package:morsey_gaming_social_hub/UI/Screens/News.dart';
+import 'package:morsey_gaming_social_hub/UI/Screens/UploadPage.dart';
+import 'package:morsey_gaming_social_hub/UI/Screens/profilePage.dart';
+import 'package:morsey_gaming_social_hub/UI/Screens/searchPage.dart';
 import 'package:morsey_gaming_social_hub/UI/Widgets/profHead.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'Login.dart';
+import 'feed.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -16,15 +22,39 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String email;
   int page;
-  getUser()async{
+  int bottomSelectedIndex;
+  User user1;
+  PageController pageController = PageController(
+    initialPage: 0,
+    keepPage: true,
+  );
+
+getEmail()async{
      FirebaseAuth auth=FirebaseAuth.instance;
     final FirebaseUser user = await auth.currentUser();
     email = user.email;
+    final x=await Firestore.instance.collection('users').document(email).get();
+    user1 = User.fromDocument(x);
+    setState(() {
+      
+    });
+  }
+
+  void bottomTapped(int index) {
+    setState(() {
+      bottomSelectedIndex = index;
+      pageController.animateToPage(index, duration: Duration(milliseconds: 500), curve: Curves.ease);
+    });
+  }
+  void pageChanged(int index) {
+    setState(() {
+      bottomSelectedIndex = index;
+    });
   }
   @override
   void initState(){
     super.initState();
-    getUser();
+    getEmail();
   }
   @override
   Widget build(BuildContext context) {
@@ -39,50 +69,27 @@ class _HomePageState extends State<HomePage> {
           TabItem(icon: Icons.people, title: 'Profile'),
         ],
         initialActiveIndex: 0,//optional, default as 0
-        onTap: (int i){
-          setState(() {
-            page=i;
-          });
+        onTap: (int index){
+          bottomTapped(index);
         },
         color: Color(0xff67FD9A),
         backgroundColor: Colors.black,
         activeColor: Colors.redAccent,
       ),
-        appBar:AppBar(
-          title:Text("GAMIAC",style:GoogleFonts.bangers(textStyle:TextStyle(color:Color(0xff67FD9A),fontSize:30,fontWeight:FontWeight.w400,letterSpacing: 2)),),
-          centerTitle: true,
-          backgroundColor: Colors.black,
-          actions: <Widget>[
-          PopupMenuButton(
-            color:Colors.tealAccent[400],
-            itemBuilder: (BuildContext context){
-              return[
-                PopupMenuItem(
-                  child: Center(
-                    child: FlatButton(
-                      onPressed:()async{
-                        SharedPreferences prefs = await SharedPreferences.getInstance();
-                        prefs.clear();
-                        signOutGoogle();
-                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>Login()),ModalRoute.withName('homepage'));
-                      },
-                      child: Text('Logout',style:GoogleFonts.orbitron(textStyle: TextStyle(color: Colors.black,fontWeight: FontWeight.w500,fontSize:18))),
-                      color: Colors.teal,
-                      splashColor: Colors.tealAccent,
-                    ),
-                  )                
-                )
-              ];
-            },
-          )
-        ],        
-        ),
         body:PageView(
+          controller: pageController,
+          physics: new NeverScrollableScrollPhysics(),
+          onPageChanged: (index) {
+            pageChanged(index);
+          },
           children:<Widget>[
-            
+            Feed(),
+            SearchPage(),
+            Upload(currentUser: user1),
+            NewsPage(),
+            ProfilePage(user1,true)
           ],
         ),
-        backgroundColor: Color(0xff21252A),
     );
   }
 }

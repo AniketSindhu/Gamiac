@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'ui/Screens/Hompage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'ui/Screens/Login.dart';
-
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
