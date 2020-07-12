@@ -1,5 +1,4 @@
-# morsey_gaming_social_hub
-
+# Gamiac
 A new Flutter project.
 
 ## Getting Started
