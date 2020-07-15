@@ -1,10 +1,12 @@
 # Gamiac
 A gaming social media app. 
-**Play, Post & Interact .
+
+**Play, Post & Interact .**
 
 [Download Gamiac](https://play.google.com/store/apps/details?id=com.aniket.gamiac)
 
-Are you a Gamer 🎮
+Are you a Gamer 🎮?
+
 If yes then GAMIAC is especially for YOU 😀.
 
 ## What is Gamiac 😕?
