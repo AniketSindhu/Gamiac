@@ -267,7 +267,9 @@ fetchSearchList() async {
   if (response.statusCode == 200) {
         var data = json.decode(response.body);
         var rest = data['results'] as List;
-        searchList = rest.map<GameSearch>((json) => GameSearch.fromJson(json)).toList();
+        setState(() {
+          searchList = rest.map<GameSearch>((json) => GameSearch.fromJson(json)).toList();
+        });
 
   } else {
     throw Exception('Failed to load deck');

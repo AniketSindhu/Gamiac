@@ -29,6 +29,9 @@
 .pub-cache/
 .pub/
 /build/
+android/**/*.xml
+android/key.properties
+android/app/Randomize.jks
 
 # Web related
 lib/generated_plugin_registrant.dart

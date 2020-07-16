@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:morsey_gaming_social_hub/Models/post.dart';
 import 'package:morsey_gaming_social_hub/Models/user.dart';
+import 'package:morsey_gaming_social_hub/UI/Screens/Comments.dart';
 import 'package:morsey_gaming_social_hub/UI/Widgets/UserProfilePic.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:assets_audio_player/assets_audio_player.dart';
@@ -245,7 +246,9 @@ class _FeedPostState extends State<FeedPost> {
                   ),
                 ),
                 FlatButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context){return Comments(widget.user,widget.post);}));
+                  },
                   child:Icon(Icons.comment,size: 30,color: Colors.white,),
                 ),
               ],

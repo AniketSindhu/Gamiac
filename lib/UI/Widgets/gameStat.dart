@@ -1,34 +1,42 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:morsey_gaming_social_hub/Models/GameSearchData.dart';
 import 'package:morsey_gaming_social_hub/UI/Screens/followingList.dart';
 
-class StatsWidget extends StatefulWidget {
-  final String email;
-  StatsWidget(this.email);
+class GameStatsWidget extends StatefulWidget {
+  final GameSearch game;
+  GameStatsWidget(this.game);
   @override
-  _StatsWidgetState createState() => _StatsWidgetState();
+  _GameStatsWidgetState createState() => _GameStatsWidgetState();
 }
 
-class _StatsWidgetState extends State<StatsWidget> {
+class _GameStatsWidgetState extends State<GameStatsWidget> {
   @override
   int count =0;
+  bool notAvailable=false;
   Future getPosts()async{
-    final x =await Firestore.instance.collection("users").document(widget.email).get();
+    final x =await Firestore.instance.collection("games").document(widget.game.slug).get();
+      if(!x.exists)
+        {
+          setState(() {
+            notAvailable=true;
+          });
+        }
     return x;
   }
   Future<String> postCount() async{
-    final x =await Firestore.instance.collection("users").document(widget.email).collection("userPosts").getDocuments();
+    final x =await Firestore.instance.collection("games").document(widget.game.slug).collection("posts").getDocuments();
     return x.documents.length.toString();
   }
   String followingCount(AsyncSnapshot data){
-    List following= data.data["games_followed"];
+    List following= data.data["followers"];
       return following.length.toString();
   }
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: getPosts(),
       builder: (context, snapshot) {
-        if(!snapshot.hasData)
+        if(!snapshot.hasData||snapshot.data==null)
           {return Center(child:CircularProgressIndicator());}
         else
         return Container(
@@ -43,10 +51,10 @@ class _StatsWidgetState extends State<StatsWidget> {
               children: <Widget>[
                 GestureDetector(
                   onTap: (){
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context){return FollowingList(widget.email);}));
+                    notAvailable?{}:Navigator.of(context).push(MaterialPageRoute(builder: (context){return GameFollowersList(snapshot.data["followers"]);}));
                   },
                   child: Text(
-                    '${followingCount(snapshot)}',
+                    '${notAvailable?"0":followingCount(snapshot)}',
                     style: Theme.of(context)
                         .textTheme
                         .headline6
@@ -58,10 +66,10 @@ class _StatsWidgetState extends State<StatsWidget> {
                 ),
                 GestureDetector(
                   onTap: (){
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context){return FollowingList(widget.email);}));
+                    notAvailable?{}:Navigator.of(context).push(MaterialPageRoute(builder: (context){return GameFollowersList(snapshot.data["followers"]);}));
                   },
                   child: Text(
-                    "Following",
+                    "Followers",
                     style: Theme.of(context)
                         .textTheme
                         .subtitle1
@@ -82,7 +90,7 @@ class _StatsWidgetState extends State<StatsWidget> {
                 builder: (context, snapshot) {
                   if(snapshot.hasData)
                   return Text(
-                    '${snapshot.data}',
+                    '${notAvailable?"0":snapshot.data}',
                     style: Theme.of(context)
                         .textTheme
                         .headline6

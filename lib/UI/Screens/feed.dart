@@ -87,7 +87,16 @@ class _FeedState extends State<Feed> {
                 if(snapshot.data.documents.length==0)
                   {
                     return SliverFillRemaining(
-                      child:Text('no posts')
+                      child:Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Lottie.asset("assets/empty_feed.json"),
+                            SizedBox(height:20),
+                            Text("Empty feed, fill your feed by following your favourite games",style: TextStyle(color:Colors.redAccent,fontSize:18,fontWeight:FontWeight.bold),textAlign: TextAlign.center,)
+                          ],
+                        ),
+                      )
                     );
                   }
                 else

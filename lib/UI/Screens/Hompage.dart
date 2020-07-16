@@ -84,7 +84,7 @@ getEmail()async{
           },
           children:<Widget>[
             Feed(),
-            SearchPage(),
+            SearchPage(user1),
             Upload(currentUser: user1),
             NewsPage(),
             ProfilePage(user1,true)

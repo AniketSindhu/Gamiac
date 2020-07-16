@@ -47,14 +47,25 @@ dependencies:
   path_provider: ^1.6.11
   uuid: ^2.2.0
   cached_network_image: ^2.2.0+1  
-  flutter_svg: ^0.18.0
-  image: ^2.1.14
+  flutter_svg: ^0.17.4
+  image: ^2.1.13
   timeago: ^2.0.26
+  webfeed: ^0.4.2
+  url_launcher: ^5.5.0
+  flutter_webview_plugin: ^0.3.11
   assets_audio_player: ^2.0.7+9
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.7.5
 
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon.png"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

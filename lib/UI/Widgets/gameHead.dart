@@ -1,62 +1,75 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:morsey_gaming_social_hub/Models/GameSearchData.dart';
 import 'package:morsey_gaming_social_hub/Models/user.dart';
 
-class ProfileHeader extends StatefulWidget {
+class GameHeader extends StatefulWidget {
+  final GameSearch game;
   final User user;
-  final bool isOwn;
-  const ProfileHeader({Key key, @required this.user,this.isOwn}) : super(key: key);
+  const GameHeader({Key key, @required this.game,this.user}) : super(key: key);
   @override
-  _ProfileHeaderState createState() => _ProfileHeaderState();
+  _GameHeaderState createState() => _GameHeaderState();
 }
 
-class _ProfileHeaderState extends State<ProfileHeader> {
-   File _image;
-  int _currentCoverIndex = 0;
-  
-  void ChangePhoto() async{
-  final pickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
-    setState(() {
-      _image = File(pickedFile.path);
-    });
-    if(_image!=null){
-       String _uploadedFileURL;
-       String fileName = "ProfilePics/${widget.user.email}";
-       StorageReference firebaseStorageRef =
-        FirebaseStorage.instance.ref().child(fileName);
-       StorageUploadTask uploadTask = firebaseStorageRef.putFile(_image);
-       StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-       print(taskSnapshot);
-       await firebaseStorageRef.getDownloadURL().then((fileURL) async {
-        _uploadedFileURL = fileURL;
-       });
-       Firestore.instance.collection('users').document(widget.user.email).setData({'profile_pic':_uploadedFileURL},merge: true).whenComplete((){
-        FlutterToast.showToast(  
-          msg: "Image uploaded",   
-          backgroundColor: Colors.green,  
-          textColor: Colors.white,  
-          fontSize: 16.0  
-          );
-          setState(() {
-            
-          });
-       });      
+class _GameHeaderState extends State<GameHeader> {
+int _currentCoverIndex = 0;
+bool followed=false;
+ @override
+ Future isFollow() async{
+   final x= await Firestore.instance.collection("users").document(widget.user.email).get();
+   List z=x.data["games_followed"];
+   if(z.contains(widget.game.slug))
+    {
+      setState(() {
+        followed=true;
+      });
     }
-  else
-    FlutterToast.showToast(  
-      msg: "No image selected",   
-      backgroundColor: Colors.red,  
-      textColor: Colors.white,  
-      fontSize: 16.0  
-    );
-}
-
+    else
+      setState(() {
+        followed=false;
+      });
+ } 
+ follow()async{
+   final x= await Firestore.instance.collection("games").document(widget.game.slug).get();
+   if(x.exists)
+    {
+      final z= await Firestore.instance.collection("users").document(widget.user.email).get();
+        List l=z.data["games_followed"];
+        if(l.contains(widget.game.slug))
+          { 
+            followed=false;
+            await Firestore.instance.collection("users").document(widget.user.email).updateData({"games_followed":FieldValue.arrayRemove([widget.game.slug])});
+            final f=await Firestore.instance.collection("users").document(widget.user.email).collection("feed").where("slug",isEqualTo:widget.game.slug).getDocuments();
+            f.documents.forEach((element) {
+                 Firestore.instance.collection("users").document(widget.user.email).collection("feed").document(element.documentID).delete();
+            });
+            await Firestore.instance.collection("games").document(widget.game.slug).updateData({"followers_count":FieldValue.increment(-1),"followers":FieldValue.arrayRemove([widget.user.email])});
+            setState(() {});
+          }
+        else{
+          followed=true;
+          await Firestore.instance.collection("users").document(widget.user.email).updateData({"games_followed":FieldValue.arrayUnion([widget.game.slug])});
+          await Firestore.instance.collection("games").document(widget.game.slug).updateData({"followers":FieldValue.arrayUnion([widget.user.email]),"followers_count":FieldValue.increment(1)});
+          final o=await Firestore.instance.collection("games").document(widget.game.slug).collection("posts").getDocuments();
+           o.documents.forEach((element) {
+             Firestore.instance.collection("users").document(widget.user.email).collection("feed").document(element.documentID).setData(element.data);
+           });
+          setState(() {});
+        }
+    }
+    else{
+      setState(() {
+        followed=true;
+      });
+      await Firestore.instance.collection('games').document(widget.game.slug).setData({'followers':[widget.user.email],'followers_count':1,'slug':widget.game.slug});
+      await Firestore.instance.collection('users').document(widget.user.email).updateData({'games_followed':FieldValue.arrayUnion([widget.game.slug])});
+    }
+ }
   @override
+  void initState(){
+    super.initState();
+    isFollow();
+  }
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height / 2,
@@ -71,8 +84,8 @@ class _ProfileHeaderState extends State<ProfileHeader> {
               },
               itemCount: 3,
               itemBuilder: (ctx, i) {
-                return _image==null?widget.user.photoUrl==null?Image.asset('assets/pro-gamer.png',fit: BoxFit.fill,):Image.network(
-                      "${widget.user.photoUrl}",fit: BoxFit.fill,):Image.file(_image,fit: BoxFit.fill,);
+                return Image.network(
+                      "${widget.game.image}",fit: BoxFit.fill,);
               },
             ),
           ),
@@ -100,7 +113,7 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                           CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          "${widget.user.gamer_tag}",
+                          "${widget.game.name}",
                           style: Theme.of(context)
                               .textTheme
                               .headline4
@@ -112,20 +125,18 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                         Row(
                           children: <Widget>[
                             Expanded(
-                              child: widget.isOwn?RaisedButton(
+                              child: RaisedButton(
                                 child: Text(
-                                  "Change photo",
+                                  followed?"Following":"Follow",
                                   style: TextStyle(fontWeight:FontWeight.bold,fontSize: 15,color: Colors.redAccent)
                                 ),
-                                onPressed: () {
-                                  ChangePhoto();
-                                },
+                                onPressed: () {follow();},
                                 color: Color(0xff67FD9A),
                                 shape: RoundedRectangleBorder(
                                   borderRadius:
                                       BorderRadius.circular(25.0),
                                 ),
-                              ):Container(),
+                              ),
                             ),
                             Expanded(
                               child: Row(
@@ -166,4 +177,3 @@ class _ProfileHeaderState extends State<ProfileHeader> {
     );
   }
 }
-

@@ -311,11 +311,11 @@ class _UploadState extends State<Upload>
               width: 280,
               child: TextField(
                 onChanged: (value){
-                _debouncer.run(() {
-                  setState(() {
+                setState(() {
                     query=value;
-                      fetchSearchList();
-                    });                    
+                  }); 
+                _debouncer.run(() {
+                    fetchSearchList();       
                   });
                 },
                 controller: searchControler,
@@ -370,7 +370,9 @@ fetchSearchList() async {
   if (response.statusCode == 200) {
         var data = json.decode(response.body);
         var rest = data['results'] as List;
-        searchList = rest.map<GameSearch>((json) => GameSearch.fromJson(json)).toList();
+        setState(() {
+          searchList = rest.map<GameSearch>((json) => GameSearch.fromJson(json)).toList();
+        });
 
   } else {
     throw Exception('Failed to load deck');

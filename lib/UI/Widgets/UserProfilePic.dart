@@ -1,5 +1,8 @@
   
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:morsey_gaming_social_hub/Models/user.dart';
+import 'package:morsey_gaming_social_hub/UI/Screens/profilePage.dart';
 
 class UserProfilePicture extends StatelessWidget {
   final String profilePicture;
@@ -19,7 +22,9 @@ class UserProfilePicture extends StatelessWidget {
           backgroundColor: Colors.white,
         ),
       ),
-      onTap: () {
+      onTap: () async{
+        final x= await Firestore.instance.collection("users").document(userId).get();
+        Navigator.of(context).push(MaterialPageRoute(builder:(context){return ProfilePage(User.fromDocument(x),false);}));
       },
     );
   }
