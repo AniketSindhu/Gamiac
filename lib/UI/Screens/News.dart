@@ -10,6 +10,7 @@ import 'package:webfeed/webfeed.dart';
 import 'package:http/http.dart'as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_webview_plugin/flutter_webview_plugin.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class NewsPage extends StatefulWidget {
   @override
@@ -57,7 +58,7 @@ class _NewsPageState extends State<NewsPage> {
     load();
   }
   title(title){
-    return Text(title,style: GoogleFonts.ptSerif(color:Colors.white,fontSize:22,fontWeight:FontWeight.w500),maxLines: 2,overflow: TextOverflow.ellipsis,);
+    return AutoSizeText(title,style: GoogleFonts.ptSerif(color:Colors.white,fontSize:22,fontWeight:FontWeight.w500),maxLines: 2,overflow: TextOverflow.ellipsis,);
   }
   thumbnail(url){
     return Container(

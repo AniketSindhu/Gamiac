@@ -330,7 +330,9 @@ fetchSearchList() async {
                     });                    
                   });
                 },
-                decoration:InputDecoration(hintText:'Search Any Game')
+                decoration:InputDecoration(
+                  enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.all(Radius.circular(12)),borderSide: BorderSide(color:Colors.redAccent)),
+                  hintText:'Search Any Game',hintStyle: TextStyle(color:Colors.red,fontWeight:FontWeight.w600)),
               )
             ),
             Expanded(
