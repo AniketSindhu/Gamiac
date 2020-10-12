@@ -19,7 +19,7 @@ class NewsPage extends StatefulWidget {
 
 class _NewsPageState extends State<NewsPage> {
   @override
-  static const String feedUrl='https://rss.app/feeds/YUpyFNgmbdjO0HBT.xml';
+  static const String feedUrl='https://www.pcgamer.com/rss/';
   RssFeed _feed;
   String _title;
   final flutterWebViewPlugin = FlutterWebviewPlugin();
